@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Солярис — Ночной релиз | Смена 1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Corbel', 'Segoe UI', 'Arial', sans-serif;
+        }
+
+        /* === ЗВЁЗДНОЕ НЕБО (только для начальных экранов и диалогов) === */
+        .stars-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 30% 40%, #0a0f2a, #010108);
+            z-index: 0;
+        }
+        .star {
+            position: absolute;
+            background: #e8e4f0;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 3s infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.15); }
+        }
+
+        /* === ЗАСТАВКА === */
+        .title-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 1s;
+        }
+        .title-content {
+            text-align: center;
+            z-index: 20;
+        }
+        .game-title {
+            font-family: 'Corbel', monospace;
+            font-size: 58px;
+            font-weight: 300;
+            letter-spacing: 6px;
+            background: linear-gradient(135deg, #e8e0ff, #b0a0d0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 28px;
+        }
+        .start-btn {
+            background: none;
+            border: 1px solid #9a8aba;
+            color: #c8c0e8;
+            padding: 10px 44px;
+            font-family: 'Corbel', monospace;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* === ОПИСАНИЕ === */
+        .story-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 90;
+        }
+        .story-text {
+            max-width: 680px;
+            color: #d8e0ff;
+            font-family: 'Corbel', monospace;
+            font-size: 18px;
+            line-height: 1.8;
+            text-align: center;
+            text-shadow: 0 0 6px rgba(0,0,0,0.6);
+            padding: 20px 30px;
+            background: transparent;
+        }
+        .story-text p {
+            margin-bottom: 28px;
+        }
+        .story-continue {
+            background: none;
+            border: 1px solid #b08ad0;
+            color: #e0ccff;
+            padding: 8px 34px;
+            font-family: 'Corbel', monospace;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        /* ============ ОСНОВНОЙ ЭКРАН КОМПЬЮТЕРА ============ */
+        .computer-wrapper {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            background: #7e8bac;
+            position: relative;
+        }
+        .screen {
+            width: 94%;
+            height: 92%;
+            background: #11131f;
+            position: absolute;
+            top: 4%;
+            left: 3%;
+            padding: 2rem 2.8rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 0 0 1px #2a3458;
+        }
+
+        /* верхнее меню — симметрично, все пункты равны */
+        .header-menu {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+        .nav-left {
+            display: flex;
+            gap: 2rem;
+        }
+        .nav-right {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        .nav-item {
+            cursor: pointer;
+            color: #b0c0e0;
+            font-size: 1rem;
+        }
+        .nav-item.active {
+            color: #e2aaff;
+        }
+        .trust-info {
+            color: #c0ccee;
+            font-size: 0.85rem;
+        }
+        .notebook-link, .exit-link {
+            cursor: pointer;
+            color: #e0b8ff;
+            border: 1px solid #5e5078;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        /* контентная область */
+        .content-area {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+
+        /* главная — только метрики */
+        .metric {
+            background: #0b1022;
+            padding: 0.8rem 1.2rem;
+            width: 300px;
+            margin-bottom: 1rem;
+            color: #cbd8ff;
+            font-size: 1rem;
+        }
+
+        /* журнал ошибок */
+        .log-line {
+            color: #b8c8f0;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            margin-bottom: 0.4rem;
+            font-family: monospace;
+        }
+        .clue-line {
+            color: #efdaa8;
+        }
+        .take-clue-btn {
+            background: none;
+            border: 1px solid #b080c0;
+            color: #e0c8ff;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.8rem;
+            margin-left: 1rem;
+            cursor: pointer;
+        }
+        .clue-found {
+            color: #b8e0b8;
+        }
+
+        /* архив */
+        .archive-file {
+            color: #a0b0da;
+            font-size: 0.95rem;
+            line-height: 2.2;
+            font-family: monospace;
+        }
+
+        /* панель администратора */
+        .admin-section {
+            background: #0a0e1c;
+            padding: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        .admin-section-title {
+            margin-bottom: 0.8rem;
+            color: #ccd8ff;
+            font-size: 0.95rem;
+        }
+        .session-row {
+            color: #c8d4ff;
+            font-size: 0.95rem;
+            line-height: 2.2;
+        }
+        .update-system-btn {
+            background: #dde6ed;
+            color: #11131f;
+            border: none;
+            padding: 0.8rem 2.5rem;
+            border-radius: 2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            display: block;
+            margin: 1.5rem auto 0 auto;
+        }
+
+        /* блокнот — разворот, шрифт Mistral */
+        .notebook-spread {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            background: #8b7355;
+            padding: 1.5rem;
+            max-width: 780px;
+            margin: 0 auto;
+        }
+        .notebook-left, .notebook-right {
+            width: 300px;
+            background: #f4efdf;
+            padding: 1.2rem;
+            min-height: 320px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .notebook-left h4, .notebook-right h4 {
+            font-family: 'Corbel', monospace;
+            color: #4a3a28;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            border-bottom: 1px solid #cfc6aa;
+            padding-bottom: 0.4rem;
+        }
+        .notebook-clue {
+            font-family: 'Mistral', 'Segoe Script', cursive;
+            font-size: 1rem;
+            color: #2e2a1e;
+            background: #f8f2e2;
+            padding: 0.7rem;
+            margin-bottom: 1rem;
+        }
+
+        /* футер — только время */
+        .footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            position: relative;
+            margin-top: 1rem;
+            padding-top: 0.5rem;
+        }
+        .system-clock {
+            text-align: right;
+            font-size: 0.85rem;
+            color: #9aacd4;
+            font-family: monospace;
+        }
+
+        /* диалоги */
+        .dark-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 30% 40%, #0a0f2a, #010108);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        .dark-dialog.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .dialog-box {
+            text-align: center;
+            max-width: 500px;
+        }
+        .portrait {
+            width: 70px;
+            height: 70px;
+            background: #1a1f3a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1rem;
+            border: 1px solid #b080c0;
+        }
+        .dialog-message {
+            color: #eeddcc;
+            font-size: 1.2rem;
+            line-height: 1.4;
+            margin-bottom: 1.5rem;
+        }
+        .dialog-btn {
+            background: none;
+            border: 1px solid #b090d0;
+            color: #eeddff;
+            padding: 0.4rem 1.5rem;
+            cursor: pointer;
+        }
+
+        /* затемнение с выбором */
+        .choice-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 30% 40%, #0a0f2a, #010108);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 180;
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        .choice-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .error-card {
+            background: rgba(0,0,0,0.7);
+            padding: 1.5rem 2rem;
+            border: 1px solid #9a7a5a;
+            text-align: center;
+        }
+        .error-card p {
+            color: #f0d090;
+            font-size: 1.5rem;
+            margin-bottom: 1.2rem;
+        }
+        .choice-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+        .choice-btn {
+            background: none;
+            border: 1px solid #b080d0;
+            color: #eeddff;
+            padding: 0.4rem 1.5rem;
+            cursor: pointer;
+        }
+
+        /* завершение смены */
+        .shift-end {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #11131f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+        .shift-end.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .end-box {
+            text-align: center;
+        }
+        .end-title {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #e8e0ff;
+        }
+        .end-btn {
+            background: none;
+            border: 1px solid #b090d0;
+            color: #e0ccff;
+            padding: 0.5rem 2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="stars-bg" id="starContainer"></div>
+
+<!-- заставка -->
+<div class="title-screen" id="titleScreen">
+    <div class="title-content">
+        <div class="game-title">солярис<br>ночной релиз</div>
+        <button class="start-btn" id="startBtn">начать</button>
+    </div>
+</div>
+
+<!-- описание -->
+<div class="story-screen" id="storyScreen" style="display: none;">
+    <div class="story-text">
+        <p>вы — гибарян, системный администратор новой команды на орбитальной станции «солярис-7». станция изучает аномальный океан планеты солярис.</p>
+        <p>полгода назад прошлая команда — крис кельвин, хари и снаут — загадочно исчезла во время ночного релиза обновления. их тела не найдены. станция работала в автономном режиме.</p>
+        <button class="story-continue" id="storyContinue">далее</button>
+    </div>
+</div>
+
+<!-- компьютер -->
+<div class="computer-wrapper" id="computerWrapper">
+    <div class="screen">
+        <!-- меню: все пункты в левой части, справа доверие/блокнот/выход -->
+        <div class="header-menu">
+            <div class="nav-left">
+                <span class="nav-item" data-page="main">главная</span>
+                <span class="nav-item" data-page="errorlog">журнал ошибок</span>
+                <span class="nav-item" data-page="archive">архив</span>
+                <span class="nav-item" data-page="admin">панель администратора</span>
+            </div>
+            <div class="nav-right">
+                <span class="trust-info">доверие: <span id="trustValue">50</span>% | смена 1/6</span>
+                <span class="notebook-link" id="notebookBtn">блокнот</span>
+                <span class="exit-link" id="exitBtn">завершить сессию</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- главная — только метрики -->
+            <div id="page-main" class="page active">
+                <div class="metric">cpu: 82%</div>
+                <div class="metric">память: 61%</div>
+                <div class="metric">сеть: стабильно</div>
+                <div class="metric">температура: 47°c</div>
+            </div>
+
+            <!-- журнал ошибок -->
+            <div id="page-errorlog" class="page">
+                <div id="errorlogContainer"></div>
+            </div>
+
+            <!-- архив -->
+            <div id="page-archive" class="page">
+                <div id="archiveContainer"></div>
+            </div>
+
+            <!-- панель администратора -->
+            <div id="page-admin" class="page">
+                <div class="admin-section">
+                    <div class="admin-section-title">активные сессии</div>
+                    <div class="session-row">кельвин — pid 4913 (активна 180 дней)</div>
+                    <div class="session-row">хари — pid 4914 (активна 180 дней)</div>
+                    <div class="session-row">снаут — pid 4915 (активна 180 дней)</div>
+                </div>
+                <button class="update-system-btn" id="adminUpdateBtn">обновить систему</button>
+            </div>
+
+            <!-- блокнот -->
+            <div id="page-notebook" class="page">
+                <div class="notebook-spread">
+                    <div class="notebook-left">
+                        <h4>улики</h4>
+                        <div id="cluesList"></div>
+                    </div>
+                    <div class="notebook-right">
+                        <h4>заметки</h4>
+                        <div id="notesList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- футер — только время -->
+        <div class="footer">
+            <div class="system-clock">
+                <div>17:17</div>
+                <div>23.05.2155</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- диалог -->
+<div class="dark-dialog" id="characterDialog">
+    <div class="dialog-box">
+        <div class="portrait">👤</div>
+        <div class="dialog-message" id="dialogMsg"></div>
+        <button class="dialog-btn" id="dialogCloseBtn">понятно</button>
+    </div>
+</div>
+
+<!-- выбор -->
+<div class="choice-overlay" id="choiceOverlay">
+    <div class="error-card">
+        <p>не трогай нас!<br>мы ещё здесь...</p>
+        <div class="choice-buttons" id="choiceButtons"></div>
+    </div>
+</div>
+
+<!-- завершение -->
+<div class="shift-end" id="shiftEndScreen">
+    <div class="end-box">
+        <div class="end-title">смена 1 завершена</div>
+        <button class="end-btn" id="restartBtn">продолжить</button>
+    </div>
+</div>
+
+<script>
+    // звёзды
+    for (let i = 0; i < 200; i++) {
+        let s = document.createElement('div');
+        s.className = 'star';
+        s.style.width = Math.random() * 2 + 1 + 'px';
+        s.style.height = s.style.width;
+        s.style.left = Math.random() * 100 + '%';
+        s.style.top = Math.random() * 100 + '%';
+        s.style.animationDelay = Math.random() * 5 + 's';
+        s.style.animationDuration = Math.random() * 2 + 2 + 's';
+        document.getElementById('starContainer').appendChild(s);
+    }
+
+    // улика
+    const clueData = {
+        id: "kelvin_log",
+        name: "лог сессии кельвина",
+        content: "[ошибка] 23:15:44 - сессия кельвина активна 180 дней. pid 4913"
+    };
+    const allFiles = ["system_log_2024_12_01.log", "exit_protocol.md", "last_words_of_crew.log", "unknown_message.log", "session_backup_2025_01.sav", "crew_manifest_old.txt"];
+
+    let game = {
+        trust: 50,
+        clues: [],
+        choiceMade: false,
+        correct: false,
+        clueAvailable: false,
+        completed: false
+    };
+
+    function renderLog() {
+        let html = `<div class="log-line">[11:23:07] предупреждение: сбой шины данных sec-73</div>
+                    <div class="log-line">[11:24:12] ошибка: невозможно подключиться к модулю okean.core</div>`;
+        if (game.clueAvailable && !game.clues.includes(clueData.id)) {
+            html += `<div class="log-line clue-line">${clueData.content} <button class="take-clue-btn" id="takeBtn">забрать улику</button></div>`;
+        } else if (game.clues.includes(clueData.id)) {
+            html += `<div class="log-line clue-found">${clueData.content} (найдено)</div>`;
+        } else {
+            html += `<div class="log-line">${clueData.content}</div>`;
+        }
+        html += `<div class="log-line">[11:34:56] предупреждение: потеря пакетов 47%</div>
+                 <div class="log-line">[11:41:03] ошибка: сессия неизвестного пользователя</div>`;
+        document.getElementById('errorlogContainer').innerHTML = html;
+        let btn = document.getElementById('takeBtn');
+        if (btn) btn.onclick = () => takeClue();
+    }
+
+    function takeClue() {
+        if (!game.clues.includes(clueData.id)) {
+            game.clues.push(clueData.id);
+            renderLog();
+            renderNotebook();
+        }
+    }
+
+    function renderArchive() {
+        let html = '';
+        for (let f of allFiles) html += `<div class="archive-file">📄 ${f}</div>`;
+        document.getElementById('archiveContainer').innerHTML = html;
+    }
+
+    function renderNotebook() {
+        let cluesHtml = game.clues.length === 0 ? '<div class="notebook-clue">нет улик</div>' : `<div class="notebook-clue"><strong>${clueData.name}</strong><br>${clueData.content}</div>`;
+        document.getElementById('cluesList').innerHTML = cluesHtml;
+        let note = '';
+        if (game.correct && game.clues.includes(clueData.id)) {
+            note = 'смена 1: отменил обновление и проверил логи. нашёл лог сессии кельвина. pid 4913. призраки в системе.';
+        } else if (!game.correct && game.clues.includes(clueData.id)) {
+            note = 'смена 1: проигнорировал предупреждение, доверие упало. но лог сессии кельвина найден.';
+        } else if (game.choiceMade && !game.clues.includes(clueData.id)) {
+            note = 'смена 1: выбор сделан, улика ещё не забрана. проверь журнал ошибок.';
+        } else {
+            note = 'смена 1: ожидание действий.';
+        }
+        document.getElementById('notesList').innerHTML = `<div class="notebook-clue">${note}</div>`;
+    }
+
+    function showDialog(msg, callback) {
+        let dlg = document.getElementById('characterDialog');
+        document.getElementById('dialogMsg').innerHTML = msg;
+        dlg.classList.add('active');
+        let close = () => {
+            dlg.classList.remove('active');
+            document.getElementById('dialogCloseBtn').removeEventListener('click', close);
+            if (callback) callback();
+        };
+        document.getElementById('dialogCloseBtn').addEventListener('click', close);
+    }
+
+    function startUpdate() {
+        if (game.choiceMade || game.completed) return;
+        let overlay = document.getElementById('choiceOverlay');
+        overlay.classList.add('active');
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            document.getElementById('choiceButtons').innerHTML = `
+                <button class="choice-btn" id="choiceA">игнорировать предупреждение</button>
+                <button class="choice-btn" id="choiceB">отменить и проверить логи</button>
+            `;
+            overlay.classList.add('active');
+            document.getElementById('choiceA').onclick = () => makeChoice('A');
+            document.getElementById('choiceB').onclick = () => makeChoice('B');
+        }, 1500);
+    }
+
+    function makeChoice(choice) {
+        document.getElementById('choiceOverlay').classList.remove('active');
+        game.choiceMade = true;
+        if (choice === 'B') {
+            game.trust = Math.min(100, game.trust + 10);
+            game.correct = true;
+            game.clueAvailable = true;
+            document.getElementById('trustValue').innerText = game.trust;
+            showDialog('гибарян, я вижу, обновление не запустилось. разберись, пожалуйста. проверь журнал ошибок, там что-то важное.', () => {
+                renderLog();
+                setActivePage('main');
+            });
+        } else {
+            game.trust = Math.max(0, game.trust - 20);
+            game.correct = false;
+            game.clueAvailable = true;
+            document.getElementById('trustValue').innerText = game.trust;
+            showDialog('ты уверен? обновление заблокировано. лучше проверь журнал ошибок.', () => {
+                renderLog();
+                setActivePage('main');
+            });
+        }
+        renderNotebook();
+    }
+
+    function setActivePage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(`page-${pageId}`).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(l => l.classList.remove('active'));
+        const activeNav = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+        if (activeNav) activeNav.classList.add('active');
+    }
+
+    function finishShift() {
+        if (game.completed) return;
+        if (game.clues.includes(clueData.id) && game.choiceMade) {
+            game.completed = true;
+            document.getElementById('shiftEndScreen').classList.add('active');
+        } else if (!game.clues.includes(clueData.id) && game.choiceMade) {
+            showDialog('улика не забрана. найди лог сессии кельвина в журнале ошибок.', () => {});
+        } else if (!game.choiceMade) {
+            showDialog('сначала выполни обновление системы.', () => {});
+        }
+    }
+
+    // события
+    document.getElementById('startBtn').onclick = () => {
+        document.getElementById('titleScreen').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('storyScreen').style.display = 'flex';
+        }, 500);
+    };
+    document.getElementById('storyContinue').onclick = () => {
+        document.getElementById('storyScreen').style.display = 'none';
+        document.getElementById('computerWrapper').style.display = 'block';
+        renderLog();
+        renderArchive();
+        renderNotebook();
+        setActivePage('main');
+    };
+    document.getElementById('adminUpdateBtn').onclick = startUpdate;
+    document.getElementById('notebookBtn').onclick = () => setActivePage('notebook');
+    document.getElementById('exitBtn').onclick = finishShift;
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.onclick = () => setActivePage(btn.dataset.page);
+    });
+    document.getElementById('restartBtn').onclick = () => location.reload();
+</script>
+</body>
+</html>
