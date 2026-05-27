@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Солярис — Ночной релиз</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+Glitch&display=swap&subset=cyrillic" rel="stylesheet">
     <link rel="stylesheet" href="solyaris.css">
     <script src="solyaris.js" defer></script>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik+Glitch&display=swap&subset=cyrillic" rel="stylesheet">
 </head>
 <body>
 
 <div class="stars-bg" id="starContainer"></div>
-
+<div class="shift-message" id="shiftMessage"></div>
 <div class="title-screen" id="titleScreen">
     <div class="title-content">
         <div class="game-title">Солярис.<br>Ночной релиз</div>
@@ -33,7 +33,7 @@
         <div class="tutorial-title">Доверие системы</div>
         <div class="tutorial-text">Станция оценивает ваши действия. Осторожные решения повышают доверие, грубые — снижают. При доверии 0 — поражение.</div>
         <div class="tutorial-title">Как завершить смену</div>
-        <div class="tutorial-text">1. на панели администратора нажмите «обновить систему»<br>2. сделайте выбор<br>3. найдите и заберите улики в журнале ошибок (нажмите на строку)<br>4. нажмите «завершить сессию»</div>
+        <div class="tutorial-text">1. на панели администратора нажмите «обновить систему»<br>2. сделайте выбор<br>3. найдите и заберите улики в журнале ошибок или архиве (нажмите на строку или файл)<br>4. нажмите «завершить сессию»</div>
         <button class="start-shift-btn" id="startShiftBtn">начать первую смену</button>
     </div>
 </div>
@@ -60,6 +60,7 @@
                 <div class="metric">память: 61%</div>
                 <div class="metric">сеть: стабильно</div>
                 <div class="metric">температура: 47°c</div>
+                <div id="shiftMessage" style="margin-top: 20px; color: #ffaa88; font-family: monospace;"></div>
             </div>
 
             <div id="page-errorlog" class="page">
@@ -118,7 +119,7 @@
 
 <div class="dark-dialog" id="characterDialog">
     <div class="dialog-box">
-        <div class="portrait">👤</div>
+        <div class="portrait" id="dialogPortrait">👤</div>
         <div class="dialog-message" id="dialogMsg"></div>
         <button class="dialog-btn" id="dialogCloseBtn">понятно</button>
     </div>
@@ -126,15 +127,32 @@
 
 <div class="choice-overlay" id="choiceOverlay">
     <div class="error-card">
-        <p>нЕ тРоГаЙ нАс!<br>мЫ еЩЁ зДеСь...</p>
+        <p id="error-card-text">нЕ тРоГаЙ нАс!<br>мЫ еЩЁ зДеСь...</p>
         <div class="choice-buttons" id="choiceButtons"></div>
     </div>
 </div>
 
 <div class="shift-end" id="shiftEndScreen">
     <div class="end-box">
-        <div class="end-title" id="shiftEndTitle">смена 1 завершена</div>
+        <div class="end-title" id="shiftEndTitle">смена завершена</div>
         <button class="end-btn" id="restartBtn">продолжить</button>
+    </div>
+</div>
+
+<div class="final-letter-overlay" id="finalLetterScreen">
+    <div class="final-letter-box">
+        <div class="final-letter-text" id="finalLetterText"></div>
+        <button class="final-letter-btn" id="finalLetterNextBtn">далее</button>
+        <button class="final-letter-btn" id="finalLetterCloseBtn" style="display: none;">завершить</button>
+    </div>
+</div>
+
+<div class="final-screen" id="finalScreen">
+    <div class="final-content">
+        <div class="final-title" id="finalTitle"></div>
+        <div class="final-text" id="finalText"></div>
+        <div class="final-stats" id="finalStats"></div>
+        <button class="final-btn" id="finalNewGameBtn">новая игра</button>
     </div>
 </div>
 
