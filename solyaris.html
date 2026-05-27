@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Солярис — Ночной релиз</title>
+    <link rel="stylesheet" href="solyaris.css">
+    <script src="solyaris.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+Glitch&display=swap&subset=cyrillic" rel="stylesheet">
+</head>
+<body>
+
+<div class="stars-bg" id="starContainer"></div>
+
+<div class="title-screen" id="titleScreen">
+    <div class="title-content">
+        <div class="game-title">Солярис.<br>Ночной релиз</div>
+        <button class="start-btn" id="startBtn">начать</button>
+    </div>
+</div>
+
+<div class="story-screen" id="storyScreen" style="display: none;">
+    <div class="story-text">
+        <p>Вы — Гибарян, системный администратор новой команды на орбитальной станции «Солярис-7». Станция изучает аномальный океан планеты Солярис.</p>
+        <p>Полгода назад прошлая команда — Крис Кельвин, Хари и Снаут — загадочно исчезла во время ночного релиза обновления. Их тела не найдены. Станция работала в автономном режиме.</p>
+        <button class="story-continue" id="storyContinue">далее</button>
+    </div>
+</div>
+
+<div class="tutorial-screen" id="tutorialScreen" style="display: none;">
+    <div class="tutorial-box">
+        <div class="tutorial-title">Ваша задача</div>
+        <div class="tutorial-text">Провести ночной релиз обновления системы хранения данных и удалить данные о пропавшей команде, чтобы начать с чистого листа.</div>
+        <div class="tutorial-title">Доверие системы</div>
+        <div class="tutorial-text">Станция оценивает ваши действия. Осторожные решения повышают доверие, грубые — снижают. При доверии 0 — поражение.</div>
+        <div class="tutorial-title">Как завершить смену</div>
+        <div class="tutorial-text">1. на панели администратора нажмите «обновить систему»<br>2. сделайте выбор<br>3. найдите и заберите улики в журнале ошибок (нажмите на строку)<br>4. нажмите «завершить сессию»</div>
+        <button class="start-shift-btn" id="startShiftBtn">начать первую смену</button>
+    </div>
+</div>
+
+<div class="computer-wrapper" id="computerWrapper">
+    <div class="screen">
+        <div class="header-menu">
+            <div class="nav-left">
+                <span class="nav-item" data-page="main">главная</span>
+                <span class="nav-item" data-page="errorlog">журнал ошибок</span>
+                <span class="nav-item" data-page="archive">архив</span>
+                <span class="nav-item" data-page="admin">панель администратора</span>
+            </div>
+            <div class="nav-right">
+                <span class="trust-info">доверие: <span id="trustValue">50</span>% | смена <span id="shiftNumber">1</span>/6</span>
+                <span class="notebook-link" id="notebookBtn">блокнот</span>
+                <span class="exit-link" id="exitBtn">завершить сессию</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div id="page-main" class="page active">
+                <div class="metric">cpu: 82%</div>
+                <div class="metric">память: 61%</div>
+                <div class="metric">сеть: стабильно</div>
+                <div class="metric">температура: 47°c</div>
+            </div>
+
+            <div id="page-errorlog" class="page">
+                <div id="errorlogContainer"></div>
+            </div>
+
+            <div id="page-archive" class="page">
+                <div id="archiveContainer"></div>
+            </div>
+
+            <div id="page-admin" class="page">
+                <div class="admin-panel">
+                    <div class="admin-section">
+                        <div class="admin-title">Активные сессии</div>
+                        <div class="session-row">кельвин — pid 4913 (активна 180 дней)</div>
+                        <div class="session-row">хари — pid 4914 (активна 180 дней)</div>
+                        <div class="session-row">снаут — pid 4915 (активна 180 дней)</div>
+                    </div>
+                    <div class="admin-section">
+                        <div class="admin-title">Системные уведомления</div>
+                        <div class="lore-row">15.11.2154 — последняя телеметрия с океана: аномальные колебания</div>
+                        <div class="lore-row">02.12.2154 — инициация протокола "ночной релиз" прошлой командой</div>
+                        <div class="lore-row">статус океана: активен / режим ожидания ответа</div>
+                        <div class="lore-row">предупреждение: нефизические сущности в цифровом контуре</div>
+                    </div>
+                    <div class="admin-section">
+                        <div class="admin-title">Журнал операций</div>
+                        <div class="lore-row">последняя операция: удаление записей (отклонено)</div>
+                        <div class="lore-row">очередь задач: обновление системы (заблокировано)</div>
+                    </div>
+                    <button class="update-system-btn" id="adminUpdateBtn">обновить систему</button>
+                </div>
+            </div>
+
+            <div id="page-notebook" class="page">
+                <div class="notebook-spread">
+                    <div class="notebook-left"><h4>улики</h4><div id="cluesList"></div></div>
+                    <div class="notebook-right"><h4>заметки</h4><div id="notesList"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="system-clock"><div>17:17</div><div>23.05.2155</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-window">
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-content" id="modalContent"></div>
+        <div class="modal-buttons" id="modalButtons"></div>
+    </div>
+</div>
+
+<div class="dark-dialog" id="characterDialog">
+    <div class="dialog-box">
+        <div class="portrait">👤</div>
+        <div class="dialog-message" id="dialogMsg"></div>
+        <button class="dialog-btn" id="dialogCloseBtn">понятно</button>
+    </div>
+</div>
+
+<div class="choice-overlay" id="choiceOverlay">
+    <div class="error-card">
+        <p>нЕ тРоГаЙ нАс!<br>мЫ еЩЁ зДеСь...</p>
+        <div class="choice-buttons" id="choiceButtons"></div>
+    </div>
+</div>
+
+<div class="shift-end" id="shiftEndScreen">
+    <div class="end-box">
+        <div class="end-title" id="shiftEndTitle">смена 1 завершена</div>
+        <button class="end-btn" id="restartBtn">продолжить</button>
+    </div>
+</div>
+
+</body>
+</html>
