@@ -32,6 +32,23 @@ body, html {
     50% { opacity: 0.85; transform: scale(1.15); }
 }
 
+.fade-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    z-index: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s;
+}
+.fade-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 .title-screen {
     position: fixed;
     top: 0;
@@ -43,11 +60,9 @@ body, html {
     justify-content: center;
     align-items: center;
     z-index: 100;
-    transition: opacity 1s;
 }
 .title-content {
     text-align: center;
-    z-index: 20;
 }
 .game-title {
     font-family: 'Rubik Glitch', 'Courier New', monospace;
@@ -68,7 +83,6 @@ body, html {
     font-family: 'Corbel', monospace;
     font-size: 18px;
     cursor: pointer;
-    transition: all 0.2s;
 }
 .start-btn:hover {
     background: rgba(226, 170, 255, 0.15);
@@ -100,9 +114,6 @@ body, html {
     padding: 20px 30px;
     background: transparent;
 }
-.story-text p {
-    margin-bottom: 28px;
-}
 .story-continue {
     background: none;
     border: 1px solid #b08ad0;
@@ -112,6 +123,10 @@ body, html {
     font-size: 16px;
     cursor: pointer;
     margin-top: 20px;
+}
+.story-continue:hover {
+    background: rgba(226, 170, 255, 0.15);
+    border-color: #e2aaff;
 }
 
 .tutorial-screen {
@@ -165,6 +180,9 @@ body, html {
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
+}
+.start-shift-btn:hover {
+    background: rgba(226, 170, 255, 0.15);
 }
 
 .computer-wrapper {
@@ -222,10 +240,7 @@ body, html {
     padding: 0.3rem 0.8rem;
     font-size: 0.85rem;
 }
-.exit-link {
-    background: none;
-}
-.exit-link:hover {
+.exit-link:hover, .notebook-link:hover {
     background: rgba(226, 170, 255, 0.2);
     border-color: #e2aaff;
 }
@@ -252,9 +267,10 @@ body, html {
     color: #b8c8f0;
     font-size: 0.95rem;
     line-height: 1.8;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.3rem;
     font-family: monospace;
     cursor: pointer;
+    padding: 0.2rem 0;
 }
 .log-line:hover {
     color: #ffffff;
@@ -269,9 +285,13 @@ body, html {
     line-height: 2.2;
     font-family: monospace;
     cursor: pointer;
+    padding: 0.2rem 0;
 }
 .archive-file:hover {
     color: #ffffff;
+}
+.archive-file.clue-found-archive {
+    color: #b8e0b8;
 }
 
 .admin-panel {
@@ -302,21 +322,27 @@ body, html {
     margin-bottom: 0.3rem;
 }
 .update-system-btn {
-    background: #2a3858;
-    color: #d0dcff;
-    border: 1px solid #6a7aac;
+    background: #c1548c;
+    color: #ffffff;
+    border: none;
     padding: 0.7rem 2rem;
     font-size: 1rem;
     font-family: 'Corbel', monospace;
     cursor: pointer;
     display: block;
     margin: 1rem auto 0 auto;
+    border-radius: 2rem;
 }
 .update-system-btn:hover {
-    background: #3a4870;
-    border-color: #e2aaff;
+    background: #e07bb0;
 }
 
+.notebook-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
 .notebook-spread {
     display: flex;
     justify-content: center;
@@ -325,7 +351,7 @@ body, html {
     padding: 1rem;
     min-height: 420px;
     max-width: 800px;
-    margin: 0 auto;
+    margin: 0;
 }
 .notebook-left, .notebook-right {
     width: 320px;
@@ -347,6 +373,18 @@ body, html {
     background: #f8f2e2;
     padding: 0.7rem;
     margin-bottom: 1rem;
+}
+.notebook-arrow {
+    background: none;
+    border: 1px solid #e2aaff;
+    color: #e2aaff;
+    font-size: 1.5rem;
+    padding: 0.5rem 0.8rem;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.notebook-arrow:hover {
+    background: rgba(226, 170, 255, 0.2);
 }
 
 .footer {
@@ -469,6 +507,10 @@ body, html {
     padding: 0.4rem 1.5rem;
     cursor: pointer;
 }
+.dialog-btn:hover {
+    background: #3a4870;
+    border-color: #e2aaff;
+}
 
 .choice-overlay {
     position: fixed;
@@ -553,15 +595,15 @@ body, html {
     color: #e8e0ff;
 }
 .end-btn {
-    background: #2a3858;
-    border: 1px solid #6a7aac;
-    color: #d0dcff;
+    background: #c1548c;
+    border: none;
+    color: #ffffff;
     padding: 0.5rem 2rem;
     cursor: pointer;
+    border-radius: 2rem;
 }
 .end-btn:hover {
-    background: #3a4870;
-    border-color: #e2aaff;
+    background: #e07bb0;
 }
 
 .final-letter-overlay {
@@ -651,6 +693,11 @@ body, html {
     margin-bottom: 2rem;
     font-family: monospace;
 }
+.final-buttons {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+}
 .final-btn {
     background: none;
     border: 1px solid #e2aaff;
@@ -660,28 +707,53 @@ body, html {
     font-size: 1rem;
     cursor: pointer;
 }
-/* сообщение в правом нижнем углу */
-.shift-message {
+.final-btn:hover {
+    background: rgba(226, 170, 255, 0.15);
+}
+
+.main-menu-screen {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background: #000000;
-    border: 2px solid #e2aaff;
-    padding: 15px 25px;
-    color: #ffffff;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at 30% 40%, #0a0f2a, #010108);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 450;
+    opacity: 0;
+    transition: opacity 0.8s;
+    pointer-events: none;
+}
+.main-menu-screen.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+.main-menu-content {
+    text-align: center;
+}
+.main-menu-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+.main-menu-btn {
+    background: none;
+    border: 1px solid #e2aaff;
+    color: #e2aaff;
+    padding: 12px 32px;
     font-family: 'Corbel', monospace;
     font-size: 1.2rem;
-    z-index: 350;
-    opacity: 0;
-    transform: translateX(100%);
-    transition: opacity 0.3s, transform 0.3s;
-    pointer-events: none;
-    box-shadow: 0 0 20px rgba(226, 170, 255, 0.2);
+    cursor: pointer;
+    min-width: 180px;
 }
-.shift-message.show {
-    opacity: 1;
-    transform: translateX(0);
+.main-menu-btn:hover {
+    background: rgba(226, 170, 255, 0.15);
 }
+
 .shift-message {
     position: fixed;
     bottom: 30px;

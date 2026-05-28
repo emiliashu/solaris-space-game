@@ -13,14 +13,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (starContainer) starContainer.appendChild(s);
     }
 
-    // ========== ВСЕ ФАЙЛЫ АРХИВА ==========
+    // ========== ВСЕ ФАЙЛЫ АРХИВА (всегда видны, улики забираются в нужную смену) ==========
     const allArchiveFiles = [
-        { name: "system_log_2024_12_01.log", title: "системный лог", content: "архив системных сообщений за декабрь 2154. зафиксированы множественные ошибки подключения.", isClue: false, showFromShift: 1 },
-        { name: "exit_protocol.md", title: "инструкция по увольнению", content: "протокол увольнения сотрудника: перед удалением данных необходимо закрыть активную сессию командой terminate_session(pid).", isClue: true, clueId: "exit_protocol", clueTitle: "инструкция по увольнению", showFromShift: 4 },
-        { name: "last_words_of_crew.log", title: "последнее письмо команды", content: "", isClue: true, clueId: "terminate_command", clueTitle: "команда terminate_session", showFromShift: 5, isLetter: true },
-        { name: "unknown_message.log", title: "неизвестное сообщение", content: "не трогай нас... мы ещё здесь... нам больно... закройте сессии, не удаляйте нас.", isClue: true, clueId: "close_sessions_hint", clueTitle: "подсказка из архива", showFromShift: 3 },
-        { name: "session_backup_2025_01.sav", title: "резервная копия", content: "бэкап сессий от 15.01.2155: кельвин(4913), хари(4914), снаут(4915).", isClue: false, showFromShift: 1 },
-        { name: "crew_manifest_old.txt", title: "манифест команды", content: "состав экипажа: кельвин К., хари, снаут. должности: инженер, ai-специалист, аналитик.", isClue: false, showFromShift: 1 }
+        { name: "system_log_2024_12_01.log", title: "системный лог", content: "архив системных сообщений за декабрь 2154. зафиксированы множественные ошибки подключения.", isClue: false, clueShift: null },
+        { name: "exit_protocol.md", title: "инструкция по увольнению", content: "протокол увольнения сотрудника: перед удалением данных необходимо закрыть активную сессию командой terminate_session(pid).", isClue: true, clueId: "exit_protocol", clueTitle: "инструкция по увольнению", clueShift: 4 },
+        { name: "last_words_of_crew.log", title: "последнее письмо команды", content: "", isClue: true, clueId: "terminate_command", clueTitle: "команда terminate_session", clueShift: 5, isLetter: true },
+        { name: "unknown_message.log", title: "неизвестное сообщение", content: "не трогай нас... мы ещё здесь... нам больно... закройте сессии, не удаляйте нас.", isClue: true, clueId: "close_sessions_hint", clueTitle: "подсказка из архива", clueShift: 3 },
+        { name: "session_backup_2025_01.sav", title: "резервная копия", content: "бэкап сессий от 15.01.2155: кельвин(4913), хари(4914), снаут(4915).", isClue: false, clueShift: null },
+        { name: "crew_manifest_old.txt", title: "манифест команды", content: "состав экипажа: кельвин К., хари, снаут. должности: инженер, ai-специалист, аналитик.", isClue: false, clueShift: null }
     ];
 
     // Улики в журнале ошибок (смены 1 и 2)
@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             shiftCompleted: false
         };
         currentShift = 1;
+        notebookPage = 0;
         saveClues();
     }
 
@@ -99,6 +100,24 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('solaris_archive_clues', JSON.stringify(archiveCluesStatus));
     }
 
+    // Много ошибок для журнала (занимают весь экран)
+    const fakeErrorLogs = [
+        "[предупреждение] 11:23:07 - сбой шины данных sec-73",
+        "[ошибка] 11:24:12 - невозможно подключиться к модулю okean.core",
+        "[предупреждение] 11:34:56 - потеря пакетов 47% на канале 4d",
+        "[ошибка] 11:41:03 - сессия неизвестного пользователя с ip 0.0.0.0",
+        "[критично] 12:01:22 - ошибка четности в блоке памяти",
+        "[предупреждение] 12:15:44 - загрузка cpu 99%",
+        "[ошибка] 12:28:33 - не удалось смонтировать раздел /var/log",
+        "[предупреждение] 12:45:11 - превышение лимита оперативной памяти",
+        "[ошибка] 13:02:55 - сбой в работе модуля связи",
+        "[критично] 13:18:33 - обнаружена утечка данных",
+        "[предупреждение] 13:35:22 - нестабильное сетевое соединение",
+        "[ошибка] 13:51:44 - повреждение файловой системы",
+        "[предупреждение] 14:08:17 - высокая нагрузка на процессор",
+        "[ошибка] 14:25:03 - таймаут подключения к базе данных"
+    ];
+
     const shiftsData = {
         1: {
             name: "призрак в системе",
@@ -126,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
             needHint: true,
             clueInErrorLog: true,
             hasMessageOnMain: true,
-            mainMessage: "Мы не закончили"
+            mainMessage: "мы не закончили!"
         },
         3: {
             name: "голоса из чата",
@@ -183,51 +202,109 @@ document.addEventListener('DOMContentLoaded', function() {
         correct: false,
         shiftCompleted: false
     };
+    let notebookPage = 0;
+    let notebookPages = [];
 
-    let mainMessageTimeout = null;
-
-    function getCurrentErrorClues() {
-        const clues = errorLogClues[currentShift];
-        if (!clues) return [];
-        if (Array.isArray(clues)) return clues;
-        return [clues];
+    function updateNotebookPages() {
+        const cluesList = document.getElementById('cluesList');
+        const notesList = document.getElementById('notesList');
+        if (!cluesList || !notesList) return;
+        
+        let allFoundHtml = '';
+        for (let s in errorLogClues) {
+            if (Array.isArray(errorLogClues[s])) {
+                for (let clue of errorLogClues[s]) {
+                    if (clue.found) allFoundHtml += `<div class="notebook-clue"><strong>${clue.title}</strong><br>${clue.content}</div>`;
+                }
+            } else if (errorLogClues[s].found) {
+                allFoundHtml += `<div class="notebook-clue"><strong>${errorLogClues[s].title}</strong><br>${errorLogClues[s].content}</div>`;
+            }
+        }
+        for (let file of allArchiveFiles) {
+            if (file.isClue && archiveCluesStatus[file.clueId]) {
+                allFoundHtml += `<div class="notebook-clue"><strong>${file.clueTitle}</strong><br>${file.content}</div>`;
+            }
+        }
+        
+        const itemsPerPage = 4;
+        const allItems = allFoundHtml.split('</div>').filter(x => x.trim());
+        const pages = [];
+        for (let i = 0; i < allItems.length; i += itemsPerPage) {
+            pages.push(allItems.slice(i, i + itemsPerPage).join('</div>') + (i + itemsPerPage < allItems.length ? '</div>' : ''));
+        }
+        notebookPages = pages;
+        
+        const prevBtn = document.getElementById('notebookPrevBtn');
+        const nextBtn = document.getElementById('notebookNextBtn');
+        
+        if (pages.length > 1) {
+            prevBtn.style.display = 'block';
+            nextBtn.style.display = 'block';
+        } else {
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+        }
+        
+        if (pages[notebookPage]) {
+            cluesList.innerHTML = pages[notebookPage];
+        } else if (pages.length === 0) {
+            cluesList.innerHTML = '<div class="notebook-clue">нет улик</div>';
+        } else {
+            cluesList.innerHTML = pages[0];
+        }
+        
+        let allFound = true;
+        const data = shiftsData[currentShift];
+        if (data && data.clueInErrorLog) {
+            const currentClues = errorLogClues[currentShift];
+            if (Array.isArray(currentClues)) {
+                allFound = currentClues.every(c => c.found);
+            } else if (currentClues) {
+                allFound = currentClues.found;
+            }
+        } else if (data) {
+            if (currentShift === 3) allFound = archiveCluesStatus["close_sessions_hint"];
+            else if (currentShift === 4) allFound = archiveCluesStatus["exit_protocol"];
+            else if (currentShift === 5) allFound = archiveCluesStatus["terminate_command"];
+        }
+        
+        let note = '';
+        if (game.correct && allFound) note = `смена ${currentShift}: правильный выбор, улики найдены.`;
+        else if (!game.correct && allFound) note = `смена ${currentShift}: неправильный выбор, но улики найдены.`;
+        else if (game.choiceMade && !allFound) note = `смена ${currentShift}: выбор сделан, но не все улики найдены.`;
+        else note = `смена ${currentShift}: ожидание действий.`;
+        notesList.innerHTML = `<div class="notebook-clue">${note}</div>`;
     }
 
-    function showMainMessage(message) {
-        const msgDiv = document.getElementById('shiftMessage');
-        msgDiv.innerHTML = message;
-        msgDiv.classList.add('show');
-        if (mainMessageTimeout) clearTimeout(mainMessageTimeout);
-        mainMessageTimeout = setTimeout(() => {
-            msgDiv.classList.remove('show');
-        }, 5000);
+    function renderNotebook() {
+        updateNotebookPages();
+        document.getElementById('trustValue').innerText = game.trust;
+        document.getElementById('shiftNumber').innerText = currentShift;
     }
 
     function renderLog() {
         const container = document.getElementById('errorlogContainer');
         if (!container) return;
         
-        const fakeClues = [
-            "[предупреждение] 11:23:07 - сбой шины данных sec-73",
-            "[ошибка] 11:24:12 - невозможно подключиться к модулю okean.core",
-            "[предупреждение] 11:34:56 - потеря пакетов 47% на канале 4d",
-            "[ошибка] 11:41:03 - сессия неизвестного пользователя с ip 0.0.0.0",
-            "[критично] 12:01:22 - ошибка четности в блоке памяти",
-            "[предупреждение] 12:15:44 - загрузка cpu 99%",
-            "[ошибка] 12:28:33 - не удалось смонтировать раздел /var/log"
-        ];
-        
         let html = '';
-        for (let fake of fakeClues) {
+        for (let fake of fakeErrorLogs) {
             html += `<div class="log-line" data-type="fake">${fake}</div>`;
         }
         
-        const currentClues = getCurrentErrorClues();
-        for (let clue of currentClues) {
-            if (!clue.found) {
-                html += `<div class="log-line" data-type="clue" data-id="${clue.id}">${clue.content}</div>`;
+        const currentClues = errorLogClues[currentShift];
+        if (currentClues) {
+            if (Array.isArray(currentClues)) {
+                for (let clue of currentClues) {
+                    if (!clue.found) {
+                        html += `<div class="log-line" data-type="clue" data-id="${clue.id}">${clue.content}</div>`;
+                    } else {
+                        html += `<div class="log-line clue-found">${clue.content} (улика найдена)</div>`;
+                    }
+                }
+            } else if (!currentClues.found) {
+                html += `<div class="log-line" data-type="clue" data-id="${currentClues.id}">${currentClues.content}</div>`;
             } else {
-                html += `<div class="log-line clue-found">✅ ${clue.content} (улика найдена)</div>`;
+                html += `<div class="log-line clue-found">${currentClues.content} (улика найдена)</div>`;
             }
         }
         
@@ -240,7 +317,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.log-line[data-type="clue"]').forEach(el => {
             el.addEventListener('click', () => {
                 const id = el.dataset.id;
-                const clue = getCurrentErrorClues().find(c => c.id === id);
+                let clue = null;
+                const currentClues = errorLogClues[currentShift];
+                if (Array.isArray(currentClues)) {
+                    clue = currentClues.find(c => c.id === id);
+                } else if (currentClues && currentClues.id === id) {
+                    clue = currentClues;
+                }
                 if (clue && !clue.found) openErrorModal(clue);
             });
         });
@@ -266,6 +349,40 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.classList.add('active');
     }
 
+    function renderArchive() {
+        const container = document.getElementById('archiveContainer');
+        if (!container) return;
+        let html = '';
+        for (let file of allArchiveFiles) {
+            let displayName = file.name;
+            if (file.isClue && archiveCluesStatus[file.clueId]) {
+                displayName = file.name + ' (улика найдена)';
+                html += `<div class="archive-file clue-found-archive" data-file="${file.name}">📄 ${displayName}</div>`;
+            } else {
+                html += `<div class="archive-file" data-file="${file.name}">📄 ${displayName}</div>`;
+            }
+        }
+        container.innerHTML = html;
+        
+        document.querySelectorAll('.archive-file').forEach(el => {
+            el.addEventListener('click', () => {
+                const fileName = el.dataset.file;
+                const file = allArchiveFiles.find(f => f.name === fileName);
+                if (file) {
+                    if (fileName === "last_words_of_crew.log" && currentShift === 5 && !archiveCluesStatus["terminate_command"]) {
+                        showLetter();
+                    } else if (file.isClue && file.clueShift === currentShift && !archiveCluesStatus[file.clueId]) {
+                        openArchiveModal(file, true, file.clueId, file.clueTitle);
+                    } else if (file.isClue && archiveCluesStatus[file.clueId]) {
+                        openArchiveModal(file, false, null, null);
+                    } else {
+                        openArchiveModal(file, false, null, null);
+                    }
+                }
+            });
+        });
+    }
+
     function openArchiveModal(file, isClue, clueId, clueTitle) {
         const modal = document.getElementById('modalOverlay');
         document.getElementById('modalTitle').innerText = file.title;
@@ -286,37 +403,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         document.getElementById('modalCloseBtn').onclick = () => modal.classList.remove('active');
         modal.classList.add('active');
-    }
-
-    function renderArchive() {
-        const container = document.getElementById('archiveContainer');
-        if (!container) return;
-        let html = '';
-        for (let file of allArchiveFiles) {
-            if (file.showFromShift > currentShift) continue;
-            let displayName = file.name;
-            if (file.isClue && archiveCluesStatus[file.clueId]) {
-                displayName = `✅ ${file.name} (улика найдена)`;
-            }
-            html += `<div class="archive-file" data-file="${file.name}">📄 ${displayName}</div>`;
-        }
-        container.innerHTML = html;
-        
-        document.querySelectorAll('.archive-file').forEach(el => {
-            el.addEventListener('click', () => {
-                const fileName = el.dataset.file;
-                const file = allArchiveFiles.find(f => f.name === fileName);
-                if (file) {
-                    if (fileName === "last_words_of_crew.log" && currentShift === 5) {
-                        showLetter();
-                    } else if (file.isClue) {
-                        openArchiveModal(file, true, file.clueId, file.clueTitle);
-                    } else {
-                        openArchiveModal(file, false, null, null);
-                    }
-                }
-            });
-        });
     }
 
     let letterParts = [];
@@ -371,53 +457,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    function renderNotebook() {
-        const cluesList = document.getElementById('cluesList');
-        const notesList = document.getElementById('notesList');
-        
-        let allFoundHtml = '';
-        
-        for (let s in errorLogClues) {
-            if (Array.isArray(errorLogClues[s])) {
-                for (let clue of errorLogClues[s]) {
-                    if (clue.found) allFoundHtml += `<div class="notebook-clue"><strong>${clue.title}</strong><br>${clue.content}</div>`;
-                }
-            } else if (errorLogClues[s].found) {
-                allFoundHtml += `<div class="notebook-clue"><strong>${errorLogClues[s].title}</strong><br>${errorLogClues[s].content}</div>`;
-            }
-        }
-        
-        for (let file of allArchiveFiles) {
-            if (file.isClue && archiveCluesStatus[file.clueId]) {
-                allFoundHtml += `<div class="notebook-clue"><strong>${file.clueTitle}</strong><br>${file.content}</div>`;
-            }
-        }
-        
-        cluesList.innerHTML = allFoundHtml || '<div class="notebook-clue">нет улик</div>';
-        
-        let allFound = true;
-        const data = shiftsData[currentShift];
-        
-        if (data && data.clueInErrorLog) {
-            const currentClues = getCurrentErrorClues();
-            allFound = currentClues.every(c => c.found);
-        } else if (data) {
-            if (currentShift === 3) allFound = archiveCluesStatus["close_sessions_hint"];
-            else if (currentShift === 4) allFound = archiveCluesStatus["exit_protocol"];
-            else if (currentShift === 5) allFound = archiveCluesStatus["terminate_command"];
-        }
-        
-        let note = '';
-        if (game.correct && allFound) note = `смена ${currentShift}: правильный выбор, улики найдены.`;
-        else if (!game.correct && allFound) note = `смена ${currentShift}: неправильный выбор, но улики найдены.`;
-        else if (game.choiceMade && !allFound) note = `смена ${currentShift}: выбор сделан, но не все улики найдены.`;
-        else note = `смена ${currentShift}: ожидание действий.`;
-        notesList.innerHTML = `<div class="notebook-clue">${note}</div>`;
-        
-        document.getElementById('trustValue').innerText = game.trust;
-        document.getElementById('shiftNumber').innerText = currentShift;
-    }
-
     function showDialog(person, msg, callback) {
         const dlg = document.getElementById('characterDialog');
         document.getElementById('dialogPortrait').innerHTML = person === 'Николь' ? '👩‍🚀' : (person === 'Бертон' ? '👨‍🔧' : '🤖');
@@ -431,8 +470,29 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('dialogCloseBtn').addEventListener('click', close);
     }
 
+    let mainMessageTimeout = null;
+    function showMainMessage(message) {
+        const msgDiv = document.getElementById('shiftMessage');
+        msgDiv.innerHTML = message;
+        msgDiv.classList.add('show');
+        if (mainMessageTimeout) clearTimeout(mainMessageTimeout);
+        mainMessageTimeout = setTimeout(() => {
+            msgDiv.classList.remove('show');
+        }, 5000);
+    }
+
     function startUpdate() {
         if (game.choiceMade || game.shiftCompleted) return;
+        
+        // Для 5 смены — специальное сообщение и переход на 6 смену
+        if (currentShift === 5) {
+            showDialog('Система', 'Завершим в следующей смене.', () => {
+                currentShift = 6;
+                showFinalChoice();
+            });
+            return;
+        }
+        
         const data = shiftsData[currentShift];
         if (!data) return;
         document.getElementById('error-card-text').innerHTML = data.updateMessage;
@@ -474,7 +534,6 @@ document.addEventListener('DOMContentLoaded', function() {
         renderNotebook();
         setActivePage('main');
         
-        // Показываем сообщение при возврате на главную после выбора в смене 2
         if (currentShift === 2 && data.hasMessageOnMain) {
             setTimeout(() => {
                 showMainMessage(data.mainMessage);
@@ -498,8 +557,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!data) return;
         
         if (data.clueInErrorLog) {
-            const currentClues = getCurrentErrorClues();
-            allFound = currentClues.every(c => c.found);
+            const currentClues = errorLogClues[currentShift];
+            if (Array.isArray(currentClues)) {
+                allFound = currentClues.every(c => c.found);
+            } else if (currentClues) {
+                allFound = currentClues.found;
+            }
         } else {
             if (currentShift === 3) allFound = archiveCluesStatus["close_sessions_hint"];
             else if (currentShift === 4) allFound = archiveCluesStatus["exit_protocol"];
@@ -517,25 +580,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function continueToMainMenu() {
+        document.getElementById('shiftEndScreen').classList.remove('active');
+        document.getElementById('mainMenuScreen').classList.add('active');
+    }
+
+    function continueGame() {
+        document.getElementById('mainMenuScreen').classList.remove('active');
+        if (!game.shiftCompleted && currentShift <= 5) {
+            setActivePage('main');
+        } else if (currentShift <= 5) {
+            nextShift();
+        } else {
+            showFinalChoice();
+        }
+    }
+
+    function startNewGame() {
+        resetGame();
+        document.getElementById('mainMenuScreen').classList.remove('active');
+        document.getElementById('computerWrapper').style.display = 'none';
+        document.getElementById('titleScreen').style.display = 'flex';
+        document.getElementById('titleScreen').style.opacity = '1';
+    }
+
     function nextShift() {
         currentShift++;
         
-        if (currentShift > 6) {
-            return;
-        }
-        
-        if (currentShift === 6) {
-            // Закрываем экран завершения смены
-            document.getElementById('shiftEndScreen').classList.remove('active');
-            // Показываем финальное решение
-            setTimeout(() => {
-                showFinalChoice();
-            }, 100);
+        if (currentShift > 5) {
+            showFinalChoice();
             return;
         }
         
         game = { trust: game.trust, choiceMade: false, correct: false, shiftCompleted: false };
-        document.getElementById('shiftEndScreen').classList.remove('active');
         
         renderLog();
         renderArchive();
@@ -611,40 +688,66 @@ document.addEventListener('DOMContentLoaded', function() {
         finalScreen.classList.add('active');
     }
 
+    function fadeToNext(callback) {
+        const fade = document.getElementById('fadeOverlay');
+        fade.classList.add('active');
+        setTimeout(() => {
+            if (callback) callback();
+            setTimeout(() => {
+                fade.classList.remove('active');
+            }, 300);
+        }, 400);
+    }
+
     // ========== СОБЫТИЯ ==========
     
     document.getElementById('startBtn').onclick = () => {
         resetGame();
-        const titleScreen = document.getElementById('titleScreen');
-        if (titleScreen) {
-            titleScreen.style.opacity = '0';
-            setTimeout(() => {
-                titleScreen.style.display = 'none';
-                const storyScreen = document.getElementById('storyScreen');
-                if (storyScreen) storyScreen.style.display = 'flex';
-            }, 500);
-        }
+        fadeToNext(() => {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('storyScreen').style.display = 'flex';
+        });
     };
     
     document.getElementById('storyContinue').onclick = () => {
-        document.getElementById('storyScreen').style.display = 'none';
-        document.getElementById('tutorialScreen').style.display = 'flex';
+        fadeToNext(() => {
+            document.getElementById('storyScreen').style.display = 'none';
+            document.getElementById('tutorialScreen').style.display = 'flex';
+        });
     };
     
     document.getElementById('startShiftBtn').onclick = () => {
-        document.getElementById('tutorialScreen').style.display = 'none';
-        document.getElementById('computerWrapper').style.display = 'block';
-        renderLog();
-        renderArchive();
-        renderNotebook();
-        setActivePage('main');
+        fadeToNext(() => {
+            document.getElementById('tutorialScreen').style.display = 'none';
+            document.getElementById('computerWrapper').style.display = 'block';
+            renderLog();
+            renderArchive();
+            renderNotebook();
+            setActivePage('main');
+        });
     };
     
     document.getElementById('adminUpdateBtn').onclick = startUpdate;
     document.getElementById('notebookBtn').onclick = () => setActivePage('notebook');
     document.getElementById('exitBtn').onclick = finishShift;
-    document.getElementById('restartBtn').onclick = nextShift;
+    document.getElementById('continueToMainBtn').onclick = continueToMainMenu;
+    document.getElementById('continueGameBtn').onclick = continueGame;
+    document.getElementById('newGameBtn').onclick = startNewGame;
+    document.getElementById('finalContinueBtn').onclick = () => location.reload();
     document.getElementById('finalNewGameBtn').onclick = () => location.reload();
+    
+    document.getElementById('notebookPrevBtn').onclick = () => {
+        if (notebookPage > 0) {
+            notebookPage--;
+            updateNotebookPages();
+        }
+    };
+    document.getElementById('notebookNextBtn').onclick = () => {
+        if (notebookPage < notebookPages.length - 1) {
+            notebookPage++;
+            updateNotebookPages();
+        }
+    };
     
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.onclick = () => setActivePage(btn.dataset.page);
