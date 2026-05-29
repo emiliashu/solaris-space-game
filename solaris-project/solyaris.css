@@ -874,9 +874,6 @@ html {
     opacity: 1;
     transform: translateX(0);
 }
-/* Дополнения к существующему CSS */
-
-/* Портреты в диалогах */
 .dialog-portrait-img {
     width: 80px;
     height: 80px;
@@ -886,7 +883,6 @@ html {
     margin-bottom: 1rem;
 }
 
-/* Вкладки блокнота */
 .notebook-tabs {
     display: flex;
     justify-content: center;
@@ -932,7 +928,7 @@ html {
     font-family: 'Corbel', monospace;
 }
 
-/* Подсказка */
+
 .hint-message {
     position: fixed;
     bottom: 30px;
@@ -953,7 +949,7 @@ html {
     opacity: 1;
     transform: translateX(0);
 }
-/* Портреты в диалогах */
+
 .dialog-portrait-img {
     width: 80px;
     height: 80px;
@@ -963,7 +959,7 @@ html {
     margin-bottom: 1rem;
 }
 
-/* Вкладки блокнота */
+
 .notebook-tabs {
     display: flex;
     justify-content: center;
@@ -1009,7 +1005,7 @@ html {
     font-family: 'Corbel', monospace;
 }
 
-/* Подсказка */
+
 .hint-message {
     position: fixed;
     bottom: 30px;
@@ -1030,7 +1026,7 @@ html {
     opacity: 1;
     transform: translateX(0);
 }
-/* история с фото */
+
 .story-part {
     display: flex;
     flex-direction: column;
@@ -1073,7 +1069,7 @@ html {
     background: rgba(226, 170, 255, 0.15);
     border-color: #e2aaff;
 }
-/* Рукописный шрифт для заметок на полях */
+
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
 
 .margin-note {
@@ -1084,4 +1080,40 @@ html {
     margin-top: 6px;
     padding-top: 6px;
     border-top: 1px dashed #aa88cc;
+}
+
+.modal-content {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.archive-file-modal .modal-content {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+#finalLetterCloseBtn {
+    display: block;
+    margin: 20px auto 0 auto;
+    text-align: center;
+}
+
+.final-choice-btn {
+    background: #2a3858;
+    border: 1px solid #e2aaff;
+    color: #e2aaff;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-family: 'Corbel', monospace;
+    cursor: pointer;
+    min-width: 280px;
+    transition: all 0.3s;
+}
+
+.final-choice-btn:hover {
+    background: #3a4870;
+    border-color: #ff88cc;
+    color: #ff88cc;
+    transform: scale(1.02);
 }
