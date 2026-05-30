@@ -22,26 +22,24 @@
 </div>
 
 <div class="story-screen" id="storyScreen" style="display: none;">
-    <!-- первый экран: фото новой команды + первый абзац -->
     <div id="storyPart1" class="story-part active">
         <div class="story-photo">
             <img src="images/новая_команда.jpg" alt="новая команда">
         </div>
-        <div class="story-text">
-            <p>Вы — Гибарян, системный администратор новой команды на орбитальной станции «Солярис-7». Станция изучает аномальный океан планеты Солярис.</p>
+        <div class="story-text" id="storyText1">
+            <p id="typingText1"></p>
         </div>
-        <button class="story-continue" id="storyContinue1">продолжить</button>
+        <button class="story-continue" id="storyContinue1" style="display: none;">продолжить</button>
     </div>
     
-    <!-- второй экран: фото старой команды + второй абзац -->
     <div id="storyPart2" class="story-part" style="display: none;">
         <div class="story-photo">
             <img src="images/старая_команда.jpg" alt="старая команда">
         </div>
-        <div class="story-text">
-            <p>Полгода назад прошлая команда — Крис Кельвин, Хари и Снаут — загадочно исчезла во время ночного релиза обновления. Их тела не найдены. Станция работала в автономном режиме.</p>
+        <div class="story-text" id="storyText2">
+            <p id="typingText2"></p>
         </div>
-        <button class="story-continue" id="storyContinue2">далее</button>
+        <button class="story-continue" id="storyContinue2" style="display: none;">далее</button>
     </div>
 </div>
 
@@ -51,7 +49,7 @@
         <div class="tutorial-text">Провести ночной релиз обновления системы хранения данных и удалить данные о пропавшей команде, чтобы начать с чистого листа.</div>
         <div class="tutorial-title">Доверие системы</div>
         <div class="tutorial-text">Станция оценивает ваши действия. Осторожные решения повышают доверие, грубые — снижают. При доверии 0 — поражение.</div>
-        <div class="tutorial-title">Как завершить смену</div>
+        <div class="tutorial-title">Как пройти смену</div>
         <div class="tutorial-text">1. на панели администратора нажмите «обновить систему»<br>2. сделайте выбор<br>3. найдите и заберите улики в журнале ошибок или архиве<br>4. нажмите «завершить сессию»</div>
         <button class="start-shift-btn" id="startShiftBtn">начать первую смену</button>
     </div>
@@ -150,12 +148,13 @@
 
 <div class="dark-dialog" id="characterDialog">
     <div class="dialog-box">
+        <div class="dialog-content">
+            <div class="dialog-message" id="dialogMsg"></div>
+            <button class="dialog-btn" id="dialogCloseBtn">понятно</button>
+        </div>
         <img class="dialog-portrait-img" id="dialogPortraitImg" src="" alt="portrait">
-        <div class="dialog-message" id="dialogMsg"></div>
-        <button class="dialog-btn" id="dialogCloseBtn">понятно</button>
     </div>
 </div>
-
 <div class="choice-overlay" id="choiceOverlay">
     <div class="error-card">
         <p id="error-card-text">нЕ тРоГаЙ нАс!<br>мЫ еЩЁ зДеСь...</p>
@@ -166,7 +165,10 @@
 <div class="shift-end" id="shiftEndScreen">
     <div class="end-box">
         <div class="end-title" id="shiftEndTitle">смена завершена</div>
-        <button class="end-btn" id="continueToMainBtn">на главную</button>
+        <div class="end-buttons-row">
+            <button class="end-btn" id="continueToMainBtn">на главную</button>
+            <button class="end-btn" id="continueToNextBtn">продолжить</button>
+        </div>
     </div>
 </div>
 
