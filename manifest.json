@@ -1,0 +1,24 @@
+{
+    "name": "Солярис. Ночной релиз",
+    "short_name": "Солярис-7",
+    "description": "Детектив-расследование на станции Солярис-7",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "theme_color": "#0a0f2a",
+    "background_color": "#010108",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "images/icon-192.jpg",
+            "sizes": "192x192",
+            "type": "image/jpg",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "images/icon-512.jpg",
+            "sizes": "512x512",
+            "type": "image/jpg",
+            "purpose": "any maskable"
+        }
+    ]
+}
