@@ -90,8 +90,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, 8000);
     }
-
-    // ===== ФУНКЦИЯ ПЕЧАТАЮЩЕГО ТЕКСТА (определена ДО использования) =====
     function typeText(element, text, speed = 60, callback = null) {
         let i = 0;
         element.innerHTML = '';
@@ -541,44 +539,53 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderArchive() {
-        const container = document.getElementById('archiveContainer');
-        if (!container) return;
-        let html = '';
-        for (let file of allArchiveFiles) {
-            let isAvailable = true;
-            if (file.clueShift !== null && file.clueShift > currentShift) {
+    const container = document.getElementById('archiveContainer');
+    if (!container) return;
+    let html = '';
+    for (let file of allArchiveFiles) {
+        let isAvailable = true;
+        
+        // Для файла last_words_of_crew.log в 5-й смене
+        if (file.name === "last_words_of_crew.log" && currentShift === 5) {
+            // Файл становится доступен ТОЛЬКО после выбора в 5-й смене
+            if (!game.choiceMade) {
                 isAvailable = false;
-            }
-            if (file.clueShift !== null && file.clueShift === currentShift && !game.choiceMade) {
-                isAvailable = false;
-            }
-            
-            if (file.isClue && archiveCluesStatus[file.clueId]) {
-                html += `<div class="archive-file clue-found-archive" data-file="${file.name}" data-available="true">📄 ${file.name} (улика найдена)</div>`;
-            } else if (!isAvailable) {
-                html += `<div class="archive-file" data-file="${file.name}" data-available="false" style="opacity:0.4;">📄 ${file.name}</div>`;
-            } else {
-                html += `<div class="archive-file" data-file="${file.name}" data-available="true">📄 ${file.name}</div>`;
             }
         }
-        container.innerHTML = html;
+        // Для остальных файлов с clueShift
+        else if (file.clueShift !== null && file.clueShift > currentShift) {
+            isAvailable = false;
+        }
+        else if (file.clueShift !== null && file.clueShift === currentShift && !game.choiceMade) {
+            isAvailable = false;
+        }
         
-        document.querySelectorAll('.archive-file[data-available="true"]').forEach(el => {
-            el.addEventListener('click', () => {
-                const fileName = el.dataset.file;
-                const file = allArchiveFiles.find(f => f.name === fileName);
-                if (file) {
-                    if (fileName === "last_words_of_crew.log" && currentShift === 5 && game.choiceMade && !archiveCluesStatus["terminate_command"]) {
-                        showLetter();
-                    } else if (file.isClue && file.clueShift === currentShift && game.choiceMade && !archiveCluesStatus[file.clueId]) {
-                        openArchiveModal(file, true, file.clueId, file.clueTitle);
-                    } else if (!file.isClue) {
-                        openArchiveModal(file, false, null, null);
-                    }
-                }
-            });
-        });
+        if (file.isClue && archiveCluesStatus[file.clueId]) {
+            html += `<div class="archive-file clue-found-archive" data-file="${file.name}" data-available="true">📄 ${file.name} (улика найдена)</div>`;
+        } else if (!isAvailable) {
+            html += `<div class="archive-file" data-file="${file.name}" data-available="false" style="opacity:0.4;">📄 ${file.name}</div>`;
+        } else {
+            html += `<div class="archive-file" data-file="${file.name}" data-available="true">📄 ${file.name}</div>`;
+        }
     }
+    container.innerHTML = html;
+    
+    document.querySelectorAll('.archive-file[data-available="true"]').forEach(el => {
+        el.addEventListener('click', () => {
+            const fileName = el.dataset.file;
+            const file = allArchiveFiles.find(f => f.name === fileName);
+            if (file) {
+                if (fileName === "last_words_of_crew.log" && currentShift === 5 && game.choiceMade && !archiveCluesStatus["terminate_command"]) {
+                    showLetter();
+                } else if (file.isClue && file.clueShift === currentShift && game.choiceMade && !archiveCluesStatus[file.clueId]) {
+                    openArchiveModal(file, true, file.clueId, file.clueTitle);
+                } else if (!file.isClue) {
+                    openArchiveModal(file, false, null, null);
+                }
+            }
+        });
+    });
+}
 
     function openArchiveModal(file, isClue, clueId, clueTitle) {
         const modal = document.getElementById('modalOverlay');
@@ -666,19 +673,23 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('dialogCloseBtn').addEventListener('click', close);
     }
 
-    function startUpdate() {
+   function startUpdate() {
     if (game.choiceMade || game.shiftCompleted) return;
     if (game.trust <= 0) {
         showFinal(false);
         return;
     }
-    
     if (currentShift === 5 && !archiveCluesStatus["terminate_command"]) {
-        showLetter();
+        game.choiceMade = true;
+        renderArchive(); 
+        showDialog('Николь', 'В архиве появился новый файл. Нажми на него, чтобы прочитать.', () => {});
         return;
     }
-    if (currentShift === 5) {
-        showFinalChoice();
+    
+    if (currentShift === 5 && archiveCluesStatus["terminate_command"]) {
+        showDialog('Система', 'Ты готов принять итоговое решение?', () => {
+            showFinalChoice();
+        });
         return;
     }
     
@@ -706,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function () {
         game.correct = true;
         if (data.correctDialog) {
             showDialog(data.correctDialog.person, data.correctDialog.text, () => {
-                // ПОДСКАЗКА ТОЛЬКО ПРИ ПРАВИЛЬНОМ ВЫБОРЕ
+
                 if (data.needHint) showHint(data.hint);
             });
         } else if (data.needHint) {
@@ -778,14 +789,6 @@ document.addEventListener('DOMContentLoaded', function () {
             addMarginNote(currentShift, game.correct);
             addMinutes(10);
             
-            const continueBtn = document.getElementById('continueToNextBtn');
-            if (continueBtn) {
-                if (currentShift === 5) {
-                    continueBtn.style.display = 'none';
-                } else {
-                    continueBtn.style.display = 'block';
-                }
-            }
             
             document.getElementById('shiftEndScreen').classList.add('active');
             document.getElementById('shiftEndTitle').innerHTML = `смена ${currentShift} завершена`;
@@ -866,11 +869,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function finalMakeChoice(choice) {
         document.getElementById('choiceOverlay').classList.remove('active');
         if (choice === 'A') {
-            game.trust = Math.min(100, game.trust + 50);
             addMarginNote(6, true);
             showFinal(true);
         } else {
-            game.trust = 0;
             addMarginNote(6, false);
             showFinal(false);
         }
@@ -914,7 +915,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 400);
     }
 
-    // ===== ОБРАБОТЧИКИ СОБЫТИЙ =====
     document.getElementById('startBtn').onclick = () => {
         clearAllData();
         fadeToNext(() => {
